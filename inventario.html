@@ -1,0 +1,74 @@
+let products = [];
+
+function startScanner() {
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#video')
+        },
+        decoder: {
+            readers: ["code_128_reader", "ean_reader", "ean_13_reader", "upc_reader", "upc_e_reader"]
+        }
+    }, function(err) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        Quagga.start();
+    });
+
+    Quagga.onDetected(function(result) {
+        let code = result.codeResult.code;
+        console.log("Código detectado: " + code);
+        document.getElementById('product-form').style.display = 'block';
+        document.getElementById('product-name').value = code; // Usamos el código como nombre por ahora
+    });
+}
+
+function saveProduct() {
+    const name = document.getElementById('product-name').value;
+    const storeQuantity = document.getElementById('store-quantity').value;
+    const warehouseQuantity = document.getElementById('warehouse-quantity').value;
+
+    if (name && storeQuantity && warehouseQuantity) {
+        const product = {
+            name,
+            storeQuantity: parseInt(storeQuantity),
+            warehouseQuantity: parseInt(warehouseQuantity)
+        };
+
+        products.push(product);
+        alert("Producto guardado exitosamente.");
+        document.getElementById('product-form').reset();
+        document.getElementById('product-form').style.display = 'none';
+        displayProducts();
+    } else {
+        alert("Por favor, complete todos los campos.");
+    }
+}
+
+function displayProducts() {
+    const list = document.getElementById('product-list');
+    list.innerHTML = '';
+
+    products.forEach(product => {
+        const item = document.createElement('li');
+        item.textContent = `${product.name} - Tienda: ${product.storeQuantity} - Bodega: ${product.warehouseQuantity}`;
+        list.appendChild(item);
+    });
+}
+
+function searchProduct() {
+    const searchQuery = document.getElementById('search').value.toLowerCase();
+    const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchQuery));
+    
+    const list = document.getElementById('product-list');
+    list.innerHTML = '';
+
+    filteredProducts.forEach(product => {
+        const item = document.createElement('li');
+        item.textContent = `${product.name} - Tienda: ${product.storeQuantity} - Bodega: ${product.warehouseQuantity}`;
+        list.appendChild(item);
+    });
+}
